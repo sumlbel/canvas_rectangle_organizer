@@ -1,5 +1,5 @@
 const rectangleOrganizer = (function () {
-    const REDRAW_INTERVAL = 10;
+    const REDRAW_INTERVAL = 16;  // 16 milliseconds is enough to get 60 frames per second
     const rectMath = rectangleMath;
 
     let startOffset;
@@ -10,7 +10,7 @@ const rectangleOrganizer = (function () {
     let canvasWidth;
     let canvasHeight;
     let ctx;
-    let redrawer = null;
+    let redrawTimer = null;
 
     let figures = [];
     let currentRect = null;
@@ -166,8 +166,13 @@ const rectangleOrganizer = (function () {
 
         if (currentRect) {
             moveCurrentRectByEvent(e);
-            canvas.onmousemove = moveCurrentRectByEvent;
-            redrawer = setInterval(redrawRectangles, REDRAW_INTERVAL);
+            canvas.onmousemove = (e) => {
+                if (Date.now() - redrawTimer >= REDRAW_INTERVAL) {
+                    moveCurrentRectByEvent(e);
+                    redrawRectangles();
+                    redrawTimer = Date.now();
+                }
+            };
         }
     }
 
@@ -176,7 +181,6 @@ const rectangleOrganizer = (function () {
             currentRect.position = originalPositionOfCurrentRect;
             rectMath.checkCurrentRectIntersection(currentRect, figures);
         }
-        clearInterval(redrawer);
         redrawRectangles();
         currentRect = null;
         currentRectOffset = null;
